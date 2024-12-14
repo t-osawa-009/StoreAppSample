@@ -15,6 +15,9 @@ struct ContentView: View {
     @State private var animationScale: CGFloat = 1.0
     @State private var animationOpacity: Double = 1.0
     @State private var cartBounce: Bool = false
+    @State private var cartItemCount: Int = 0
+    @State private var itemCountScale: CGFloat = 1.0  // バッジのスケール
+    @State private var itemCountOpacity: Double = 1.0  // バッジの透明度
     
     private let products = [
         Product(id: UUID(), name: "Product 1", price: "$10"),
@@ -60,19 +63,7 @@ struct ContentView: View {
                 
                 HStack {
                     Spacer()
-                    Button(action: {
-                        
-                    }, label: {
-                        Image(systemName: "cart.fill")
-                            .font(.largeTitle)
-                            .foregroundStyle(Color.white)
-                            .padding()
-                            .background(Color.green)
-                            .cornerRadius(8)
-                            .scaleEffect(cartBounce ? 1.2 : 1.0)
-                            .animation(.interpolatingSpring(stiffness: 300, damping: 10).delay(0.7), value: cartBounce)
-                            .reportCoordinates(using: cartID)
-                    })
+                    cartView()
                 }.padding()
             }
             .onPreferenceChange(CoordinatePreferenceKey.self) { preferences in
@@ -90,6 +81,36 @@ struct ContentView: View {
         }
     }
     
+    private func cartView() -> some View {
+        Button(action: {
+            
+        }, label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "cart.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(Color.white)
+                    .padding()
+                    .background(Color.green)
+                    .cornerRadius(8)
+                    .scaleEffect(cartBounce ? 1.2 : 1.0)
+                    .animation(.interpolatingSpring(stiffness: 300, damping: 10).delay(0.7), value: cartBounce)
+                    .reportCoordinates(using: cartID)
+                
+                if cartItemCount > 0 {
+                    Text("\(cartItemCount)")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.red)
+                        .clipShape(Circle())
+                        .scaleEffect(itemCountScale)
+                        .opacity(itemCountOpacity)
+                        .offset(x: 12, y: -12)
+                }
+            }
+        })
+    }
+    
     private let animationDuration: Double = 0.7
     private let cartBounceDuration: Double = 0.3
     private let midAnimationDelay: Double = 0.7
@@ -104,7 +125,9 @@ struct ContentView: View {
         showAnimation = true
         
         startItemToCartAnimation()
-        triggerCartBounceAnimation()
+        triggerCartBounceAnimation {
+            animateItemCountIncrement()
+        }
     }
 
     private func resetAnimationState() {
@@ -126,11 +149,23 @@ struct ContentView: View {
         }
     }
 
-    private func triggerCartBounceAnimation() {
+    private func triggerCartBounceAnimation(completion: @escaping () -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + midAnimationDelay) {
             self.cartBounce = true
             DispatchQueue.main.asyncAfter(deadline: .now() + cartBounceDuration) {
                 self.cartBounce = false
+                completion()
+            }
+        }
+    }
+    
+    private func animateItemCountIncrement() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            itemCountScale = 1.3  // スケールアップ
+            
+            withAnimation(.easeInOut(duration: 0.3)) {
+                cartItemCount += 1
+                itemCountScale = 1.0  // スケールダウン
             }
         }
     }
