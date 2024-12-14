@@ -193,6 +193,12 @@ struct ContentView: View {
                 animations[index].opacity = 0.0
             }
         }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + animation.duration + midAnimationDelay) {
+            if let index = self.animations.firstIndex(where: { $0.id == animation.id }) {
+                self.animations.remove(at: index)
+            }
+        }
     }
     
     private func triggerCartBounceAnimation(completion: @escaping () -> Void) {
