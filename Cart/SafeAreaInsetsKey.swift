@@ -1,6 +1,6 @@
 import SwiftUI
 
-// https://qiita.com/Ryu0118/items/9983fb23ec79368cd224
+// https://stackoverflow.com/questions/57116723/how-to-access-safe-area-size-in-swiftui
 public extension UIApplication {
     var keyWindow: UIWindow? {
         connectedScenes
