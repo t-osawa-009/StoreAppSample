@@ -8,16 +8,30 @@ struct Product: Identifiable {
     let price: String
 }
 
+struct CircleAnimation: Identifiable {
+    let id: UUID
+    var position: CGPoint
+    var scale: CGFloat
+    var opacity: Double
+    let duration: Double
+    
+    init(id: UUID, initialPosition: CGPoint, finalPosition: CGPoint, duration: Double, scale: CGFloat, opacity: Double) {
+        self.id = id
+        self.position = initialPosition
+        self.scale = scale
+        self.opacity = opacity
+        self.duration = duration
+    }
+}
+
 struct ContentView: View {
     @State private var coordinates: [UUID: CGRect] = [:]
-    @State private var showAnimation: Bool = false
-    @State private var animationOffset: CGPoint = .zero
-    @State private var animationScale: CGFloat = 1.0
-    @State private var animationOpacity: Double = 1.0
+    @State private var animations: [CircleAnimation] = []
     @State private var cartBounce: Bool = false
     @State private var cartItemCount: Int = 0
     @State private var itemCountScale: CGFloat = 1.0
     @State private var itemCountOpacity: Double = 1.0
+    @State private var animationOffset: CGPoint = .zero
     
     private let products = [
         Product(id: UUID(), name: "Product 1", price: "$10"),
@@ -62,13 +76,15 @@ struct ContentView: View {
                 }.navigationTitle("Product List")
                     .toolbarTitleDisplayMode(.large)
             }
-            if showAnimation {
+            
+            // Display all Circle animations
+            ForEach(animations) { animation in
                 Circle()
                     .fill(Color.red)
                     .frame(width: 30, height: 30)
-                    .scaleEffect(animationScale)
-                    .opacity(animationOpacity)
-                    .position(x: animationOffset.x, y: animationOffset.y)
+                    .scaleEffect(animation.scale)
+                    .opacity(animation.opacity)
+                    .position(x: animation.position.x, y: animation.position.y)
             }
         }
     }
@@ -102,7 +118,7 @@ struct ContentView: View {
     
     private func cartView() -> some View {
         Button(action: {
-            
+            // Cart button action
         }, label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "cart.fill")
@@ -133,42 +149,52 @@ struct ContentView: View {
     private let animationDuration: Double = 0.7
     private let cartBounceDuration: Double = 0.3
     private let midAnimationDelay: Double = 0.7
-
+    
     private func triggerAddToCartAnimation(for productID: UUID) {
         guard let itemFrame = coordinates[productID] else { return }
         
-        // safeAreaInsetsを考慮しないとズレる。
+        // Set the animation offset based on the item's position
         animationOffset = CGPoint(x: itemFrame.midX - safeAreaInsets.leading,
                                   y: itemFrame.midY - safeAreaInsets.top)
-        resetAnimationState()
         
-        showAnimation = true
+        // Create a new animation for this tap
+        let newAnimation = CircleAnimation(
+            id: UUID(),
+            initialPosition: animationOffset, // Use animationOffset here
+            finalPosition: calculateEndPoint(),
+            duration: animationDuration,
+            scale: 1.0,
+            opacity: 1.0
+        )
         
-        startItemToCartAnimation()
+        animations.append(newAnimation)
+        startItemToCartAnimation(for: newAnimation)
+        
+        // Trigger cart bounce and item count increment
         triggerCartBounceAnimation {
             animateItemCountIncrement()
         }
     }
-
-    private func resetAnimationState() {
-        animationScale = 1.0
-        animationOpacity = 1.0
-    }
-
-    private func startItemToCartAnimation() {
+    
+    private func startItemToCartAnimation(for animation: CircleAnimation) {
+        // Find the index of the animation in the animations array
+        guard let index = animations.firstIndex(where: { $0.id == animation.id }) else { return }
+        
         DispatchQueue.main.async {
-            withAnimation(.easeInOut(duration: animationDuration)) {
-                self.animationOffset = self.calculateMidPoint()
+            withAnimation(.easeInOut(duration: animation.duration)) {
+                // Move the animation to the mid-point
+                animations[index].position = self.calculateMidPoint()
             }
             
-            withAnimation(.easeInOut(duration: animationDuration).delay(midAnimationDelay)) {
-                self.animationOffset = self.calculateEndPoint()
-                self.animationScale = 0.5
-                self.animationOpacity = 0.0
+            withAnimation(.easeInOut(duration: animation.duration).delay(midAnimationDelay)) {
+                // Move the animation to the final position
+                animations[index].position = self.calculateEndPoint()
+                animations[index].scale = 0.5
+                animations[index].opacity = 0.0
             }
         }
     }
-
+    
     private func triggerCartBounceAnimation(completion: @escaping () -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + midAnimationDelay) {
             self.cartBounce = true
@@ -188,18 +214,17 @@ struct ContentView: View {
             }
         }
     }
+    
+    private func calculateEndPoint() -> CGPoint {
+        guard let cartFrame = coordinates[cartID] else { return .zero }
+        return CGPoint(x: cartFrame.midX - safeAreaInsets.leading,
+                       y: cartFrame.midY - safeAreaInsets.top)
+    }
 
     private func calculateMidPoint() -> CGPoint {
         guard let cartFrame = coordinates[cartID] else { return .zero }
         return CGPoint(x: (animationOffset.x + cartFrame.midX) / 2,
                        y: animationOffset.y - 100)
-    }
-
-    private func calculateEndPoint() -> CGPoint {
-        guard let cartFrame = coordinates[cartID] else { return .zero }
-        // safeAreaInsetsを考慮しないとズレる。
-        return CGPoint(x: cartFrame.midX - safeAreaInsets.leading,
-                       y: cartFrame.midY - safeAreaInsets.top)
     }
 }
 
