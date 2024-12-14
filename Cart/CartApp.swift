@@ -4,7 +4,7 @@ import SwiftUI
 struct CartApp: App {
     var body: some Scene {
         WindowGroup {
-            AddToCartAnimationExample()
+            ContentView()
         }
     }
 }

@@ -8,7 +8,7 @@ struct Product: Identifiable {
     let price: String
 }
 
-struct AddToCartAnimationExample: View {
+struct ContentView: View {
     @State private var coordinates: [UUID: CGRect] = [:]
     @State private var showAnimation: Bool = false
     @State private var animationOffset: CGPoint = .zero
@@ -60,14 +60,19 @@ struct AddToCartAnimationExample: View {
                 
                 HStack {
                     Spacer()
-                    Image(systemName: "cart.fill")
-                        .font(.largeTitle)
-                        .padding()
-                        .background(Color.green)
-                        .cornerRadius(8)
-                        .scaleEffect(cartBounce ? 1.2 : 1.0)
-                        .animation(.interpolatingSpring(stiffness: 300, damping: 10).delay(0.7), value: cartBounce)
-                        .reportCoordinates(using: cartID)
+                    Button(action: {
+                        
+                    }, label: {
+                        Image(systemName: "cart.fill")
+                            .font(.largeTitle)
+                            .foregroundStyle(Color.white)
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(8)
+                            .scaleEffect(cartBounce ? 1.2 : 1.0)
+                            .animation(.interpolatingSpring(stiffness: 300, damping: 10).delay(0.7), value: cartBounce)
+                            .reportCoordinates(using: cartID)
+                    })
                 }.padding()
             }
             .onPreferenceChange(CoordinatePreferenceKey.self) { preferences in
@@ -144,6 +149,6 @@ struct AddToCartAnimationExample: View {
 // MARK: - Preview
 
 #Preview {
-    AddToCartAnimationExample()
+    ContentView()
 }
 
