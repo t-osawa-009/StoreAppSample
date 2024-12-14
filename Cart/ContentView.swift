@@ -138,7 +138,7 @@ struct ContentView: View {
         guard let itemFrame = coordinates[productID] else { return }
         
         // safeAreaInsetsを考慮しないとズレる。
-        animationOffset = CGPoint(x: itemFrame.midX,
+        animationOffset = CGPoint(x: itemFrame.midX - safeAreaInsets.leading,
                                   y: itemFrame.midY - safeAreaInsets.top)
         resetAnimationState()
         
@@ -198,7 +198,7 @@ struct ContentView: View {
     private func calculateEndPoint() -> CGPoint {
         guard let cartFrame = coordinates[cartID] else { return .zero }
         // safeAreaInsetsを考慮しないとズレる。
-        return CGPoint(x: cartFrame.midX,
+        return CGPoint(x: cartFrame.midX - safeAreaInsets.leading,
                        y: cartFrame.midY - safeAreaInsets.top)
     }
 }
