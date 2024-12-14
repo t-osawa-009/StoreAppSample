@@ -16,14 +16,24 @@ struct ContentView: View {
     @State private var animationOpacity: Double = 1.0
     @State private var cartBounce: Bool = false
     @State private var cartItemCount: Int = 0
-    @State private var itemCountScale: CGFloat = 1.0  // バッジのスケール
-    @State private var itemCountOpacity: Double = 1.0  // バッジの透明度
+    @State private var itemCountScale: CGFloat = 1.0
+    @State private var itemCountOpacity: Double = 1.0
     
     private let products = [
         Product(id: UUID(), name: "Product 1", price: "$10"),
         Product(id: UUID(), name: "Product 2", price: "$20"),
-        Product(id: UUID(), name: "Product 3", price: "$30")
+        Product(id: UUID(), name: "Product 3", price: "$30"),
+        Product(id: UUID(), name: "Product 4", price: "$40"),
+        Product(id: UUID(), name: "Product 5", price: "$50"),
+        Product(id: UUID(), name: "Product 6", price: "$60"),
+        Product(id: UUID(), name: "Product 7", price: "$70"),
+        Product(id: UUID(), name: "Product 8", price: "$80"),
+        Product(id: UUID(), name: "Product 9", price: "$90"),
+        Product(id: UUID(), name: "Product 10", price: "$100"),
+        Product(id: UUID(), name: "Product 11", price: "$110"),
+        Product(id: UUID(), name: "Product 12", price: "$120")
     ]
+    
     @Environment(\.safeAreaInsets) var safeAreaInsets
     private let cartID = UUID()
     
@@ -31,18 +41,21 @@ struct ContentView: View {
         ZStack {
             NavigationStack {
                 VStack(spacing: 16) {
-                    ScrollView {
-                        ForEach(products) { product in
-                            productItemView(product: product)
+                    ZStack {
+                        ScrollView {
+                            ForEach(products) { product in
+                                productItemView(product: product)
+                            }
+                            Color.clear.padding(.bottom, 100)
+                        }
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                cartView()
+                            }.padding()
                         }
                     }
-                    
-                    Spacer()
-                    
-                    HStack {
-                        Spacer()
-                        cartView()
-                    }.padding()
                 }
                 .onPreferenceChange(CoordinatePreferenceKey.self) { preferences in
                     self.coordinates = preferences
@@ -178,12 +191,15 @@ struct ContentView: View {
 
     private func calculateMidPoint() -> CGPoint {
         guard let cartFrame = coordinates[cartID] else { return .zero }
-        return CGPoint(x: (animationOffset.x + cartFrame.midX) / 2, y: animationOffset.y - 100)
+        return CGPoint(x: (animationOffset.x + cartFrame.midX) / 2,
+                       y: animationOffset.y - 100)
     }
 
     private func calculateEndPoint() -> CGPoint {
         guard let cartFrame = coordinates[cartID] else { return .zero }
-        return CGPoint(x: cartFrame.midX, y: cartFrame.midY)
+        // safeAreaInsetsを考慮しないとズレる。
+        return CGPoint(x: cartFrame.midX,
+                       y: cartFrame.midY - safeAreaInsets.top)
     }
 }
 
