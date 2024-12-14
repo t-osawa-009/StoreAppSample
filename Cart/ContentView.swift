@@ -1,37 +1,5 @@
 import SwiftUI
 
-struct CoordinatePreferenceKey: PreferenceKey {
-    static var defaultValue: [UUID: CGRect] = [:]
-    
-    static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) {
-        value.merge(nextValue(), uniquingKeysWith: { $1 })
-    }
-}
-
-// MARK: - CoordinateModifier
-
-struct CoordinateModifier: ViewModifier {
-    let id: UUID
-    
-    func body(content: Content) -> some View {
-        content
-            .background(
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: CoordinatePreferenceKey.self,
-                        value: [id: proxy.frame(in: .global)]
-                    )
-                }
-            )
-    }
-}
-
-extension View {
-    func reportCoordinates(using id: UUID) -> some View {
-        self.modifier(CoordinateModifier(id: id))
-    }
-}
-
 // MARK: - Product Model
 
 struct Product: Identifiable {
@@ -125,7 +93,7 @@ struct AddToCartAnimationExample: View {
         guard let itemFrame = coordinates[productID] else { return }
         
         // safeAreaInsetsを考慮しないとズレる。
-        animationOffset = CGPoint(x: itemFrame.center.x, y: itemFrame.center.y - safeAreaInsets.top)
+        animationOffset = CGPoint(x: itemFrame.midX, y: itemFrame.midY - safeAreaInsets.top)
         resetAnimationState()
         
         showAnimation = true
@@ -170,41 +138,6 @@ struct AddToCartAnimationExample: View {
     private func calculateEndPoint() -> CGPoint {
         guard let cartFrame = coordinates[cartID] else { return .zero }
         return CGPoint(x: cartFrame.midX, y: cartFrame.midY)
-    }
-}
-
-extension CGRect {
-    var center: CGPoint {
-        return CGPoint(x: midX, y: midY)
-    }
-}
-
-public extension UIApplication {
-    var keyWindow: UIWindow? {
-        connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first?
-            .windows
-            .filter(\.isKeyWindow)
-            .first
-    }
-}
-
-extension UIEdgeInsets {
-    var edgeInsets: EdgeInsets {
-        EdgeInsets(top: top, leading: left, bottom: bottom, trailing: right)
-    }
-}
-
-private struct SafeAreaInsetsKey: EnvironmentKey {
-    static var defaultValue: EdgeInsets {
-        UIApplication.shared.keyWindow?.safeAreaInsets.edgeInsets ?? EdgeInsets()
-    }
-}
-
-public extension EnvironmentValues {
-    var safeAreaInsets: EdgeInsets {
-        self[SafeAreaInsetsKey.self]
     }
 }
 
