@@ -29,47 +29,26 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            VStack(spacing: 16) {
-                ScrollView {
-                    ForEach(products) { product in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(product.name)
-                                    .font(.headline)
-                                Text(product.price)
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }.padding()
-                            
-                            Spacer()
-                            Button(action: {
-                                triggerAddToCartAnimation(for: product.id)
-                            }) {
-                                Text("Add to Cart")
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                            .reportCoordinates(using: product.id)
+            NavigationStack {
+                VStack(spacing: 16) {
+                    ScrollView {
+                        ForEach(products) { product in
+                            productItemView(product: product)
                         }
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal, 15)
                     }
-                }
-                
-                Spacer()
-                
-                HStack {
+                    
                     Spacer()
-                    cartView()
-                }.padding()
+                    
+                    HStack {
+                        Spacer()
+                        cartView()
+                    }.padding()
+                }
+                .onPreferenceChange(CoordinatePreferenceKey.self) { preferences in
+                    self.coordinates = preferences
+                }.navigationTitle("Product List")
+                    .toolbarTitleDisplayMode(.large)
             }
-            .onPreferenceChange(CoordinatePreferenceKey.self) { preferences in
-                self.coordinates = preferences
-            }
-            
             if showAnimation {
                 Circle()
                     .fill(Color.red)
@@ -79,6 +58,33 @@ struct ContentView: View {
                     .position(x: animationOffset.x, y: animationOffset.y)
             }
         }
+    }
+    
+    private func productItemView(product: Product) -> some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text(product.name)
+                    .font(.headline)
+                Text(product.price)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }.padding()
+            
+            Spacer()
+            Button(action: {
+                triggerAddToCartAnimation(for: product.id)
+            }) {
+                Text("Add to Cart")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+            .reportCoordinates(using: product.id)
+        }
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(8)
+        .padding(.horizontal, 15)
     }
     
     private func cartView() -> some View {
