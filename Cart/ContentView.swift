@@ -138,7 +138,8 @@ struct ContentView: View {
         guard let itemFrame = coordinates[productID] else { return }
         
         // safeAreaInsetsを考慮しないとズレる。
-        animationOffset = CGPoint(x: itemFrame.midX, y: itemFrame.midY - safeAreaInsets.top)
+        animationOffset = CGPoint(x: itemFrame.midX,
+                                  y: itemFrame.midY - safeAreaInsets.top)
         resetAnimationState()
         
         showAnimation = true
@@ -180,11 +181,10 @@ struct ContentView: View {
     
     private func animateItemCountIncrement() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            itemCountScale = 1.3  // スケールアップ
-            
+            itemCountScale = 1.3
             withAnimation(.easeInOut(duration: 0.3)) {
                 cartItemCount += 1
-                itemCountScale = 1.0  // スケールダウン
+                itemCountScale = 1.0
             }
         }
     }
